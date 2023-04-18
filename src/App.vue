@@ -1,7 +1,10 @@
 <template>
   <div id="app">
     <div id="sideBar">
-      <div class="locationData" v-for="(item, index) in getDetailData[0]" :key="index"
+      <div class="searchBar">
+        <input type="text" placeholder="Search" v-model="citySearch">
+      </div>
+      <div class="locationData" v-for="(item, index) in searchArray[0]" :key="index"
         :class="[index === 0 ? 'lastLocation' : '']" @click="setCenterByLocation(position[index], index)">
         <div class="headInfo">
           <h3 class="locationNumber magSize" style=" cursor: pointer;">
@@ -12,8 +15,6 @@
           <h4>●</h4>
           <h3 class="locationNumber fw-300" style=" cursor: pointer;">
             {{ dateDay[index].date }} {{ dateDay[index].time }}</h3>
-
-
         </div>
         <div>
           <div class="lastLocationData">
@@ -23,8 +24,6 @@
             <p class="lastTitle" v-if="index === 0">Last</p>
           </div>
         </div>
-
-
       </div>
     </div>
     <div id="mapBox">
@@ -82,35 +81,49 @@ export default {
       path: "/images/",
       center: [38.837033, 35.057786],
       popupOpen: "",
-      attribution:
-        '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+      attribution:'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+      citySearch: '',
+      searchArray: [],
 
     };
   },
   mounted() {
+    
     this.getMap()
     this.getEAdatas = this.getEarthquakeDatas()
     console.log(this.getDetailData);
     setTimeout(() => {
       this.createHeatMapDatas()
       this.createMarkerDatas()
+      
     }, 400);
     setTimeout(() => {
       this.$refs.map.mapObject.setZoom(6)
     }, 200);
+    
+    
   },
-  created() {
+  
 
+  watch:{
+    citySearch() {
+      
+      this.filterCity()
+      
+    }
   },
   methods: {
+    filterCity(){
+      this.searchArray[0] = this.getDetailData[0]
+      this.searchArray[0] = this.searchArray[0].filter(item => item.title.toLowerCase().includes(this.citySearch.toLowerCase()))
+    },
     setCenterByLocation(location, index) {
-
       setTimeout(async () => {
         this.getHeatMapDatas = []
         await this.$refs.map.mapObject.flyTo([location.position.lat, location.position.lng], 13, { duration: 3.2 })
       }, 10);
-      setTimeout(async () => {
-        await this.createHeatMapDatas()
+      setTimeout( () => {
+         this.createHeatMapDatas()
       }, 20);
       setTimeout(() => {
         this.x = document.querySelectorAll(`.leaflet-marker-icon`)
@@ -120,7 +133,8 @@ export default {
           }
         })
       }, 3300);
-    }
+    },
+   
   }
 };
 
@@ -239,6 +253,30 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.searchBar{
+  margin: 32px 30px 23px 25px;
+}
+
+.searchBar input{
+  width: 100%;
+    background-color: transparent;
+    outline: none;
+    border: none;
+    color: #c3c3c3;
+    font-size: 16px;
+    border-bottom: 1px solid #ffffff00;
+    transition: .2s;
+}
+
+.searchBar input:focus{
+  border-bottom: 1px solid #81a1ff;
+  box-shadow: rgb(69 111 173 / 55%) 0px 6px 7px -4px;
+}
+
+.searchBar input::placeholder{
+  color: #a9a9a9;
 }
 
 .lastTitle {

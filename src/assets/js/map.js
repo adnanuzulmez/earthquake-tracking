@@ -15,7 +15,7 @@ const mapMixin = {
         createMarkerDatas() {
             this.getEAdatas.then((res) => {
                 this.getDetailData[0] = res.result
-
+                this.searchArray[0] = res.result
                 res.result.map((item) => {
 
                     this.position.push(
