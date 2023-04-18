@@ -17,7 +17,7 @@ const mapMixin = {
                 this.getDetailData[0] = res.result
                 this.searchArray[0] = res.result
                 res.result.map((item) => {
-
+                   
                     this.position.push(
                         {
                             position: {
@@ -27,16 +27,17 @@ const mapMixin = {
                             popup: {
                                 mag: item.mag,
                                 depth: item.depth,
-                            }
+                            },
+                            tooltip: item.title,
+                            id: item._id
                         })
                     this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
                     this.dateDay.push(
                         {
                             date: moment(item.date_time).format('dddd'),
-                            time: moment(item.date_time).format('HH:MM'),
+                            time: moment(item.date_time).format('HH:mm'),
                             title: item.title
                         })
-
                 })
             })
         },
@@ -50,6 +51,7 @@ const mapMixin = {
     mounted() {
         this.getMap()
         this.getEarthquakeDatas()
+       
     },
     data() {
         return {
