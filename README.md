@@ -1,24 +1,6 @@
-# project
+# Earthquake Tracking App
 
-## Project setup
-```
-npm install
-```
+This App shows last earthquakes in Turkey, map markers depending the earthquake magnitudes and changes
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+Live Demo: https://earthquake-tracking-beta.vercel.app
 
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
