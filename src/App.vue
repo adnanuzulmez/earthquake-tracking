@@ -1,11 +1,13 @@
 <template>
   <div id="app">
-    <div id="sideBar">
+   
+   <div class="leftSidebar" :class="[sidebarFlag === 0 ? 'sidebarHidden' : '']">
+    <div id="sideBar" >
       <div class="searchBar">
         <input type="text" placeholder="Search" v-model="citySearch">
       </div>
       <div class="locationData" v-for="(item, index) in searchArray[0]" :key="index"
-        :class="[index === 0 ? 'lastLocation' : '']" @click="setCenterByLocation(position[index], index)">
+        :class="[(index === 0 && citySearch === '') ? 'lastLocation' : '']" @click="setCenterByLocation(item._id, index)">
         <div class="headInfo">
           <h3 class="locationNumber magSize" style=" cursor: pointer;">
             {{ item.mag }}</h3>
@@ -21,11 +23,19 @@
             <p class="locationAddress" style=" cursor: pointer;">
               {{ item.title }}
             </p>
-            <p class="lastTitle" v-if="index === 0">Last</p>
+            <p class="lastTitle" v-if="index === 0 && citySearch === ''">Last</p>
           </div>
         </div>
       </div>
     </div>
+    <div class="sidebarSwitch" @click="sidebarHide()" :class="[sidebarFlag === 0 ? 'sidebarSwitchStatus' : '']">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-ul"
+        viewBox="0 0 16 16">
+        <path fill-rule="evenodd"
+          d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
+      </svg>
+    </div>
+   </div>
     <div id="mapBox">
       <l-map :zoom="zoom" :center="center" :min-zoom="minZoom" :max-zoom="maxZoom" ref="map">
         <l-tile-layer :url="this.mapCreator" :attribution="attribution" />
@@ -46,8 +56,11 @@
             </div>
           </l-popup>
           <l-icon>
-            <div :id="'location' + index" :class="[`mag-${parseInt(item.popup.mag)}`]"></div>
+            <div :id="item.id" :class="[`mag-${parseInt(item.popup.mag)}`, index === 0 ? 'lastEarthQuake' : '']"></div>
           </l-icon>
+          <l-tooltip :content="item.tooltip">
+
+          </l-tooltip>
         </l-marker>
         <l-icon-default :image-path="path" />
       </l-map>
@@ -56,11 +69,11 @@
 </template>
 
 <script>
-import { LMap, LTileLayer, LMarker, LIconDefault, LPopup, LIcon, } from "vue2-leaflet";
+import { LMap, LTileLayer, LMarker, LIconDefault, LPopup, LIcon, LTooltip } from "vue2-leaflet";
 
 import mapMixin from "./assets/js/map.js"
 import Vue2LeafletHeatmap from "./Vue2LeafletHeatMap";
-
+let cityId
 export default {
   name: "EarthquakeMap",
   mixins: [mapMixin],
@@ -72,69 +85,84 @@ export default {
     LPopup,
     Vue2LeafletHeatmap,
     LIcon,
+    LTooltip,
   },
   data() {
     return {
-      zoom: 5,
-      minZoom: 5,
+      zoom: 4,
+      minZoom: 4,
       maxZoom: 15,
       path: "/images/",
       center: [38.837033, 35.057786],
       popupOpen: "",
-      attribution:'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
       citySearch: '',
       searchArray: [],
+      sidebarFlag: 1,
 
     };
   },
   mounted() {
-    
+
     this.getMap()
     this.getEAdatas = this.getEarthquakeDatas()
+
     console.log(this.getDetailData);
     setTimeout(() => {
       this.createHeatMapDatas()
       this.createMarkerDatas()
-      
+
     }, 400);
     setTimeout(() => {
-      this.$refs.map.mapObject.setZoom(6)
+      this.$refs.map.mapObject.setZoom(5)
     }, 200);
-    
-    
-  },
-  
+    let leafletZoom = document.querySelector(".leaflet-left")
+    leafletZoom.remove()
 
-  watch:{
+  },
+
+
+  watch: {
     citySearch() {
-      
+
       this.filterCity()
-      
+
     }
   },
   methods: {
-    filterCity(){
+    sidebarHide(){
+      if(this.sidebarFlag != 0){
+        this.sidebarFlag = 0
+      }
+      else{
+        this.sidebarFlag = 1
+      }
+    },
+    filterCity() {
       this.searchArray[0] = this.getDetailData[0]
       this.searchArray[0] = this.searchArray[0].filter(item => item.title.toLowerCase().includes(this.citySearch.toLowerCase()))
     },
-    setCenterByLocation(location, index) {
+    setCenterByLocation(id) {
+      
+      cityId = this.getDetailData[0].filter((item) => item._id === id) 
+      console.log(cityId[0]);
       setTimeout(async () => {
         this.getHeatMapDatas = []
-        await this.$refs.map.mapObject.flyTo([location.position.lat, location.position.lng], 13, { duration: 3.2 })
+        await this.$refs.map.mapObject.flyTo(cityId[0].geojson.coordinates.reverse(), 13, { duration: 3.2 })
       }, 10);
-      setTimeout( () => {
-         this.createHeatMapDatas()
+      setTimeout(() => {
+        this.createHeatMapDatas()
       }, 20);
       setTimeout(() => {
         this.x = document.querySelectorAll(`.leaflet-marker-icon`)
         Array.from(this.x).map((item) => {
-          if (item.childNodes[0].getAttribute("id") == "location" + index) {
+          if (item.childNodes[0].getAttribute("id") === cityId[0]._id) {
             item.childNodes[0].click()
           }
         })
       }, 3300);
     },
-   
+
   }
 };
 
@@ -167,6 +195,7 @@ body {
 #mapBox {
   height: 100%;
   width: 100%;
+  position: absolute;
 }
 
 #sideBar {
@@ -174,6 +203,10 @@ body {
   background-color: #3C3D3F;
   height: 100%;
   overflow-y: scroll;
+  position: relative;
+  right: 0%;
+  z-index: 99999999;
+  transition:  1.5s;
 }
 
 * {
@@ -245,7 +278,7 @@ body {
   border-radius: 50%;
 }
 
-.magSize{
+.magSize {
   font-size: 25px;
 }
 
@@ -255,27 +288,66 @@ body {
   align-items: center;
 }
 
-.searchBar{
+.searchBar {
   margin: 32px 30px 23px 25px;
 }
 
-.searchBar input{
-  width: 100%;
-    background-color: transparent;
-    outline: none;
-    border: none;
-    color: #c3c3c3;
-    font-size: 16px;
-    border-bottom: 1px solid #ffffff00;
-    transition: .2s;
+.sidebarSwitchStatus{
+  margin-left: 20px;
 }
 
-.searchBar input:focus{
+.sidebarHidden{
+  right: 500px !important;
+  transition:  3s;
+}
+
+.leftSidebar{
+    transition: 1s;
+    display: flex;
+    position: relative;
+    right: 0 
+}
+
+.sidebarSwitch{
+    
+    position: relative;
+    color: #dfdfdf;
+    margin-left: 20px;
+    z-index: 9999999;
+    padding: 10px;
+    border-radius: 50%;
+    background: #494c50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 20px;
+    box-shadow: rgb(173 173 173 / 55%) 0px 0px 7px 6px;
+    cursor: pointer;
+    height: 28px;
+}
+
+.sidebarSwitch svg{
+    width: 28px;
+    height: 28px;
+}
+
+.searchBar input {
+  width: 100%;
+  background-color: transparent;
+  outline: none;
+  border: none;
+  color: #c3c3c3;
+  font-size: 16px;
+  border-bottom: 1px solid #ffffff00;
+  transition: .2s;
+}
+
+.searchBar input:focus {
   border-bottom: 1px solid #81a1ff;
   box-shadow: rgb(69 111 173 / 55%) 0px 6px 7px -4px;
 }
 
-.searchBar input::placeholder{
+.searchBar input::placeholder {
   color: #a9a9a9;
 }
 
@@ -336,5 +408,26 @@ body {
   height: 8px !important;
   padding: 1px !important;
   margin: -6px auto 0px !important;
+}
+
+.lastEarthQuake{
+  animation: pulse 2s infinite;
+}
+	
+@keyframes pulse {
+	0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 3px rgb(255, 255, 255);
+  }
+  
+  70% {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 15px rgba(255, 255, 255, 0);
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
 }
 </style>
