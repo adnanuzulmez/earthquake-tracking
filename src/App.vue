@@ -39,7 +39,7 @@
         </div>
         <div class="sidebarSwitch" @click.self="calendarShow()">
           <div class="hideContent" :class="[dateFlag === 0 ? 'hideContent-show' : '']">
-            <date-picker v-model="dateRange" range></date-picker>
+            <date-picker v-model="dateRange" range :disabled-date="(date) => date >= new Date()"></date-picker>
           </div>
           <svg @click="calendarShow()" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
             class="bi bi-calendar-date" viewBox="0 0 16 16" style=" width: 20px;height: 20px;">
@@ -136,14 +136,14 @@ export default {
       magValue: "",
       filterFlag: 1,
       dateFlag: 1,
-      dateRange: ""
+      dateRange: []
 
     };
   },
   mounted() {
     this.getMap()
+    console.log(this.getEAdatas);
     this.getEAdatas = this.getEarthquakeDatas()
-    console.log(this.getDetailData);
     setTimeout(() => {
       this.createHeatMapDatas()
       this.createMarkerDatas()
@@ -160,7 +160,49 @@ export default {
     },
     magValue() {
       this.filterMag()
+    },
+    dateRange() {
+      this.dateRange[0] = moment(this.dateRange[0]).format("YYYY-MM-DD")
+      this.dateRange[1] = moment(this.dateRange[1]).format("YYYY-MM-DD")
+      this.getEAdatas = this.getEarthquakeDatas(this.dateRange)
+      this.searchArray = []
+      this.getDetailData = []
+      this.position = []
+      this.getHeatMapDatas = []
+      this.dateDay = []
+      this.getEAdatas.then((res) => {
+              
+                res.map((items) => {
+                  this.getDetailData[0] = items.result
+                  this.searchArray[0] = items.result
+                   items.result.map((item) => {
+                    this.position.push(
+                        {
+                            position: {
+                                lat: item.geojson.coordinates[1],
+                                lng: item.geojson.coordinates[0]
+                            }, 
+                            popup: {
+                                mag: item.mag,
+                                depth: item.depth,
+                            },
+                            tooltip: item.title,
+                            id: item._id
+                        })
+                    this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
+                    this.dateDay.push(
+                        {
+                            date: moment(item.date_time).format('dddd'),
+                            time: moment(item.date_time).format('HH:mm'),
+                            title: item.title
+                        })
+                   })
+                    
+                })
+            })
+            
     }
+
   },
   methods: {
     sidebarHide() {
@@ -353,6 +395,7 @@ body {
   height: 8px;
   background-color: rgb(255, 229, 114);
   border-radius: 50%;
+  border: 1px solid #ffb387;
 }
 
 .mag-2 {
@@ -360,6 +403,7 @@ body {
   height: 10px;
   background-color: rgb(255, 160, 72);
   border-radius: 50%;
+  border: 1px solid #ffb387;
 }
 
 .mag-3 {
@@ -367,6 +411,7 @@ body {
   height: 18px;
   background-color: rgb(255, 108, 23);
   border-radius: 50%;
+  border: 1px solid #ffb387;
 }
 
 .mag-4,
@@ -375,6 +420,7 @@ body {
   height: 24px;
   background-color: rgb(253, 84, 84);
   border-radius: 50%;
+  border: 1px solid #ffb387;
 }
 
 .mag-6,
@@ -383,6 +429,7 @@ body {
   height: 32px;
   background-color: rgb(201, 0, 0);
   border-radius: 50%;
+  border: 1px solid #ffb387;
 }
 
 .magSize {
@@ -611,13 +658,14 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-.mx-datepicker-popup{
+.mx-datepicker-popup {
   left: 644px !important;
 }
 
 .mx-datepicker-range {
-    width: 220px !important;
+  width: 220px !important;
 }
+
 /*https://api.orhanaydogdu.com.tr/deprem/kandilli/archive?limit=1000&date_end=2023-04-28&date=2023-04-01&skip=5000*/
 
 @keyframes pulse {
