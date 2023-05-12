@@ -6,10 +6,12 @@
         <div class="searchBar">
           <input type="text" placeholder="Search" v-model="citySearch">
         </div>
-        <div class="locationData" v-for="(item, index) in searchArray[0]" :key="index"
+        <div  v-for="(item, index) in searchArray" :key="index"
+          >
+          <div class="locationData" v-for="(item, index) in item" :key="index"
           :class="[(index === 0 && citySearch === '' && magValue === '') ? 'lastLocation' : '']"
           @click="setCenterByLocation(item._id, index)">
-          <div class="headInfo">
+            <div class="headInfo">
             <h3 class="locationNumber magSize" style=" cursor: pointer;">
               {{ item.mag }}</h3>
             <h4>●</h4>
@@ -26,6 +28,7 @@
               </p>
               <p class="lastTitle" v-if="index === 0 && citySearch === '' && magValue === ''">Last</p>
             </div>
+          </div>
           </div>
         </div>
       </div>
@@ -171,36 +174,39 @@ export default {
       this.getHeatMapDatas = []
       this.dateDay = []
       this.getEAdatas.then((res) => {
-              
-                res.map((items) => {
-                  this.getDetailData[0] = items.result
-                  this.searchArray[0] = items.result
-                   items.result.map((item) => {
-                    this.position.push(
-                        {
-                            position: {
-                                lat: item.geojson.coordinates[1],
-                                lng: item.geojson.coordinates[0]
-                            }, 
-                            popup: {
-                                mag: item.mag,
-                                depth: item.depth,
-                            },
-                            tooltip: item.title,
-                            id: item._id
-                        })
-                    this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
-                    this.dateDay.push(
-                        {
-                            date: moment(item.date_time).format('dddd'),
-                            time: moment(item.date_time).format('HH:mm'),
-                            title: item.title
-                        })
-                   })
-                    
-                })
-            })
-            
+
+        res.map((items, index) => {
+
+          items.result.map((item) => {
+            this.getDetailData[index] = items.result
+            this.searchArray[index] = items.result
+            this.position.push(
+              {
+                position: {
+                  lat: item.geojson.coordinates[1],
+                  lng: item.geojson.coordinates[0]
+                },
+                popup: {
+                  mag: item.mag,
+                  depth: item.depth,
+                },
+                tooltip: item.title,
+                id: item._id
+              })
+            this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
+            this.dateDay.push(
+              {
+                date: moment(item.date_time).format('dddd'),
+                time: moment(item.date_time).format('HH:mm'),
+                title: item.title
+              })
+          })
+
+        })
+        console.log(this.searchArray);
+      })
+
+
     }
 
   },
@@ -214,67 +220,82 @@ export default {
       }
     },
     filterMag() {
-      this.searchArray[0] = this.getDetailData[0]
-      this.searchArray[0] = this.searchArray[0].filter(item => parseInt(item.mag) >= parseInt(this.magValue))
+      this.getDetailData.map((item, index) => {
+        this.searchArray[index] = this.getDetailData[index]
+        this.searchArray[index] = this.searchArray[index].filter(item => parseInt(item.mag) >= parseInt(this.magValue))
+      })
+
       let tempPosition = []
       this.position = []
       this.getHeatMapDatas = []
       this.dateDay = []
-      tempPosition = this.searchArray[0].filter(item => parseInt(item.mag) >= parseInt(this.magValue))
-      tempPosition.map((item) => {
+      this.searchArray.map((item, index) => {
+        tempPosition[index] = item.filter(item => parseInt(item.mag) >= parseInt(this.magValue))
+      })
 
-        this.position.push(
-          {
-            position: {
-              lat: item.geojson.coordinates[1],
-              lng: item.geojson.coordinates[0]
-            },
-            popup: {
-              mag: item.mag,
-              depth: item.depth,
-            },
-            tooltip: item.title,
-            id: item._id
-          })
-        this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
-        this.dateDay.push(
-          {
-            date: moment(item.date_time).format('dddd'),
-            time: moment(item.date_time).format('HH:mm'),
-            title: item.title
-          })
+      tempPosition.map((items) => {
+        items.map((item) => {
+          this.position.push(
+            {
+              position: {
+                lat: item.geojson.coordinates[1],
+                lng: item.geojson.coordinates[0]
+              },
+              popup: {
+                mag: item.mag,
+                depth: item.depth,
+              },
+              tooltip: item.title,
+              id: item._id
+            })
+          this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
+          this.dateDay.push(
+            {
+              date: moment(item.date_time).format('dddd'),
+              time: moment(item.date_time).format('HH:mm'),
+              title: item.title
+            })
+        })
+
       })
     },
     filterCity() {
-      this.searchArray[0] = this.getDetailData[0]
-      this.searchArray[0] = this.searchArray[0].filter(item => item.title.toLowerCase().includes(this.citySearch.toLowerCase()))
+
+      this.getDetailData.map((item, index) => {
+        this.searchArray[index] = this.getDetailData[index]
+        this.searchArray[index] = this.searchArray[index].filter(item => item.title.toLowerCase().includes(this.citySearch.toLowerCase()))
+      })
       let tempLoc = []
       this.position = []
       this.getHeatMapDatas = []
       this.dateDay = []
-      tempLoc = this.searchArray[0].filter(item => item.title.toLowerCase().includes(this.citySearch.toLowerCase()))
-      tempLoc.map((item) => {
+      this.searchArray.map((item, index) => {
+        tempLoc[index] = item.filter(item => item.title.toLowerCase().includes(this.citySearch.toLowerCase()))
+      })
 
-        this.position.push(
-          {
-            position: {
-              lat: item.geojson.coordinates[1],
-              lng: item.geojson.coordinates[0]
-            },
-            popup: {
-              mag: item.mag,
-              depth: item.depth,
-            },
-            tooltip: item.title,
-            id: item._id
-          })
-        this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
-        this.dateDay.push(
-          {
-            date: moment(item.date_time).format('dddd'),
-            time: moment(item.date_time).format('HH:mm'),
-            title: item.title
-          })
+      tempLoc.map((items) => {
+        items.map((item) => {
+          this.position.push(
+            {
+              position: {
+                lat: item.geojson.coordinates[1],
+                lng: item.geojson.coordinates[0]
+              },
+              popup: {
+                mag: item.mag,
+                depth: item.depth,
+              },
+              tooltip: item.title,
+              id: item._id
+            })
+          this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
+          this.dateDay.push(
+            {
+              date: moment(item.date_time).format('dddd'),
+              time: moment(item.date_time).format('HH:mm'),
+              title: item.title
+            })
+        })
 
       })
     },
