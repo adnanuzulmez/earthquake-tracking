@@ -25,7 +25,7 @@ const mapMixin = {
                 this.skip = skipCount
                 earthquakeResults = []
                 if (this.skip > 0) {
-                    let index = 0
+                    
                     for (let i = 0; i < this.skip; i++) {
 
                         config = {
@@ -37,11 +37,12 @@ const mapMixin = {
                             }
                         }
                         let earthquakeDatas = await axios.get(apitools.ARCHIVE_EARTHQUAKES, config)
-                        earthquakeResults[index] = await earthquakeDatas.data
-                        index++
+                        earthquakeResults =  [...earthquakeResults, earthquakeDatas.data]
+                        
                     }
                     console.log(earthquakeResults);
                 }
+                
             }
             else {
                 let earthquakeDatas = await axios.get(apitools.EARTHQUAKE_API)
@@ -52,12 +53,12 @@ const mapMixin = {
             return earthquakeResults
         },
         createMarkerDatas() {
-            this.searchArray = []
             this.getDetailData = []
+            this.searchArray = []
             this.position = []
             this.getEAdatas.then((res) => {
                 this.getDetailData[0] = res.result
-                this.searchArray[0] = res.result
+                this.searchArray[0] =  res.result
                 res.result.map((item) => {
 
                     this.position.push(

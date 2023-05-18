@@ -2,33 +2,32 @@
   <div id="app">
 
     <div class="leftSidebar" :class="[sidebarFlag === 0 ? 'sidebarHidden' : '']">
-      <div id="sideBar">
+      <div id="sideBar" ref="contentBox">
         <div class="searchBar">
           <input type="text" placeholder="Search" v-model="citySearch">
         </div>
-        <div  v-for="(item, index) in searchArray" :key="index"
-          >
+        <div v-for="(item, index) in searchArray" :key="index">
           <div class="locationData" v-for="(item, index) in item" :key="index"
-          :class="[(index === 0 && citySearch === '' && magValue === '') ? 'lastLocation' : '']"
-          @click="setCenterByLocation(item._id, index)">
+            :class="[(index === 0 && citySearch === '' && magValue === '') ? 'lastLocation' : '', selectedMarker === index ? 'selected' : '']"
+            @click="setCenterByLocation(item._id, index), selectAndScroll(index)" ref="choosenLocation">
             <div class="headInfo">
-            <h3 class="locationNumber magSize" style=" cursor: pointer;">
-              {{ item.mag }}</h3>
-            <h4>●</h4>
-            <h3 class="locationNumber fw-300" style=" cursor: pointer;">
-              {{ item.depth }} KM</h3>
-            <h4>●</h4>
-            <h3 class="locationNumber fw-300" style=" cursor: pointer;">
-              {{ dateDay[index].date }} {{ dateDay[index].time }}</h3>
-          </div>
-          <div>
-            <div class="lastLocationData">
-              <p class="locationAddress" style=" cursor: pointer;">
-                {{ item.title }}
-              </p>
-              <p class="lastTitle" v-if="index === 0 && citySearch === '' && magValue === ''">Last</p>
+              <h3 class="locationNumber magSize" style=" cursor: pointer;">
+                {{ item.mag }}</h3>
+              <h4>●</h4>
+              <h3 class="locationNumber fw-300" style=" cursor: pointer;">
+                {{ item.depth }} KM</h3>
+              <h4>●</h4>
+              <h3 class="locationNumber fw-300" style=" cursor: pointer;">
+                {{ dateDay[index].date }} {{ dateDay[index].time }}</h3>
             </div>
-          </div>
+            <div>
+              <div class="lastLocationData">
+                <p class="locationAddress" style=" cursor: pointer;">
+                  {{ item.title }}
+                </p>
+                <p class="lastTitle" v-if="index === 0 && citySearch === '' && magValue === ''">Last</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -74,7 +73,9 @@
         <Vue2LeafletHeatmap :lat-lng="getHeatMapDatas" :radius="40" :min-opacity="0.35" :max-zoom="10" :blur="50">
         </Vue2LeafletHeatmap>
         <l-marker v-for="(item, index) in position" :key="index" :lat-lng="item.position"
-          @click="() => center = [item.position.lat, item.position.lng]">
+          @click="() => {
+            selectAndScroll(index)
+            center = [item.position.lat, item.position.lng]}">
           <l-popup>
             <div class="magnitude">
               <h2 style="font-size: 40px;color: #446c8f;;">{{ item.popup.mag }}</h2>
@@ -139,7 +140,8 @@ export default {
       magValue: "",
       filterFlag: 1,
       dateFlag: 1,
-      dateRange: []
+      dateRange: [],
+      selectedMarker: ''
 
     };
   },
@@ -335,6 +337,27 @@ export default {
         })
       }, 3300);
     },
+
+    selectAndScroll(index) {
+
+      const contentBox = this.$refs.contentBox;
+      const selectedDivIndex = index
+      const selectedDiv = this.$refs.choosenLocation[selectedDivIndex];
+
+      const containerRect = contentBox.getBoundingClientRect();
+      const targetDivRect = selectedDiv.getBoundingClientRect();
+      const containerScrollTop = contentBox.scrollTop;
+
+      const scrollOffset = targetDivRect.top - containerRect.top + containerScrollTop - containerRect.height / 2 + targetDivRect.height / 2;
+      contentBox.scrollTo({ top: scrollOffset, behavior: 'smooth' });
+
+
+      setTimeout(() => {
+        this.selectedMarker = index
+      }, 1000);
+
+    },
+
   }
 };
 </script>
@@ -615,6 +638,12 @@ body {
   opacity: 0;
   transition: .3s;
   z-index: -1;
+}
+
+.selected{
+  background-color: #ffffff80 !important;
+    color: #000000 !important;
+    box-shadow: rgb(221 221 221 / 39%) 0px 0px 20px !important;
 }
 
 .multiselect__option--selected.multiselect__option--highlight {
