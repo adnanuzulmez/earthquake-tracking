@@ -73,10 +73,10 @@
         <Vue2LeafletHeatmap :lat-lng="getHeatMapDatas" :radius="40" :min-opacity="0.35" :max-zoom="10" :blur="50">
         </Vue2LeafletHeatmap>
         <l-marker v-for="(item, index) in position" :key="index" :lat-lng="item.position"
-          @click="() => {
+          @click="getWeatherData(index),() => {
             selectAndScroll(index)
             center = [item.position.lat, item.position.lng]}">
-          <l-popup>
+          <l-popup >
             <div class="magnitude">
               <h2 style="font-size: 40px;color: #446c8f;;">{{ item.popup.mag }}</h2>
               <h4>Magnitude</h4>
@@ -107,6 +107,8 @@ import Multiselect from 'vue-multiselect'
 import moment from "moment"
 import DatePicker from 'vue2-datepicker';
 import 'vue2-datepicker/index.css';
+import apitools from "./assets/js/api"
+import axios from 'axios'
 
 let cityId
 export default {
@@ -198,6 +200,7 @@ export default {
             this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
             this.dateDay.push(
               {
+                fullDate: moment(item.date_time).format('YYYY-MM-DD'),
                 date: moment(item.date_time).format('dddd'),
                 time: moment(item.date_time).format('HH:mm'),
                 title: item.title
@@ -318,7 +321,6 @@ export default {
       }
     },
     setCenterByLocation(id) {
-
       cityId = this.getDetailData[0].filter((item) => item._id === id)
       console.log(cityId[0]);
       setTimeout(async () => {
@@ -339,26 +341,33 @@ export default {
     },
 
     selectAndScroll(index) {
-
       const contentBox = this.$refs.contentBox;
       const selectedDivIndex = index
       const selectedDiv = this.$refs.choosenLocation[selectedDivIndex];
-
       const containerRect = contentBox.getBoundingClientRect();
       const targetDivRect = selectedDiv.getBoundingClientRect();
       const containerScrollTop = contentBox.scrollTop;
-
       const scrollOffset = targetDivRect.top - containerRect.top + containerScrollTop - containerRect.height / 2 + targetDivRect.height / 2;
       contentBox.scrollTo({ top: scrollOffset, behavior: 'smooth' });
-
-
       setTimeout(() => {
         this.selectedMarker = index
       }, 1000);
-
     },
-
+    getWeatherData(index){
+      let dateTime = this.dateDay[index].fullDate
+      let params = {
+       params: {
+        q: this.dateDay[index].title,
+        dt: dateTime
+       }
+      }
+      axios.get(apitools.WEATHER_API, params)
+      .then((response) => {
+        console.log(response.data);
+      })
+    }
   }
+
 };
 </script>
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
