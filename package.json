@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@skinnyjames/vue2-leaflet-canvas": "^1.1.0",
     "axios": "^1.2.2",
     "core-js": "^3.8.3",
     "leaflet": "^1.9.3",
@@ -16,7 +17,10 @@
     "moment-js": "^1.1.15",
     "tf-vue-leaflet-heatmap": "^1.0.0",
     "vue": "^2.6.14",
+    "vue-multiselect": "^2.1.7",
+    "vue2-datepicker": "^3.11.1",
     "vue2-leaflet": "^2.7.1",
+    "vue2-leaflet-canvas-marker": "^1.0.1",
     "vue2-leaflet-markercluster": "^3.1.0"
   },
   "devDependencies": {
