@@ -76,15 +76,24 @@
           @click="getWeatherData(index),() => {
             selectAndScroll(index)
             center = [item.position.lat, item.position.lng]}">
-          <l-popup >
+          <l-popup style="min-width: 150px" >
             <div class="magnitude">
               <h2 style="font-size: 40px;color: #446c8f;;">{{ item.popup.mag }}</h2>
               <h4>Magnitude</h4>
             </div>
             <div class="infos">
+              
               <h5>{{ dateDay[index].date }} {{ dateDay[index].time }}</h5>
               <h5>Depth: {{ item.popup.depth }} KM</h5>
               <h5>{{ dateDay[index].title }} </h5>
+              <h5 style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex;  justify-content: center; flex-direction: column;">
+                  <h3>{{ forecastInfo.condition.text }}</h3>
+                <h3>{{ forecastInfo.mintemp_c }}°  -  {{ forecastInfo.maxtemp_c }}°</h3>
+                </div>
+              <img :src="forecastInfo.condition.icon" style="width: 50px; height: 50px">
+              </h5>
+             
             </div>
           </l-popup>
           <l-icon>
@@ -143,7 +152,15 @@ export default {
       filterFlag: 1,
       dateFlag: 1,
       dateRange: [],
-      selectedMarker: ''
+      selectedMarker: '',
+      forecastInfo: {
+        condition: {
+          text: '',
+          icon: '',
+        },
+        mintemp_c: '',
+        maxtemp_c: ''
+      },
 
     };
   },
@@ -256,6 +273,7 @@ export default {
           this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
           this.dateDay.push(
             {
+              fullDate: moment(item.date_time).format('YYYY-MM-DD'),
               date: moment(item.date_time).format('dddd'),
               time: moment(item.date_time).format('HH:mm'),
               title: item.title
@@ -296,6 +314,7 @@ export default {
           this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
           this.dateDay.push(
             {
+              fullDate: moment(item.date_time).format('YYYY-MM-DD'),
               date: moment(item.date_time).format('dddd'),
               time: moment(item.date_time).format('HH:mm'),
               title: item.title
@@ -363,7 +382,9 @@ export default {
       }
       axios.get(apitools.WEATHER_API, params)
       .then((response) => {
-        console.log(response.data);
+        
+        this.forecastInfo = response.data.forecast.forecastday[0].day
+        console.log(this.forecastInfo);
       })
     }
   }
@@ -636,17 +657,19 @@ body {
 }
 
 .hideContent-show {
-  left: 55px !important;
-  opacity: 1 !important;
-  transition: .3s;
+    left: 55px !important;
+    top: 7px !important;
+    opacity: 1 !important;
+    transition: .6s;
 }
 
 .hideContent {
   position: absolute;
-  left: 100px;
-  opacity: 0;
-  transition: .3s;
-  z-index: -1;
+    opacity: 0;
+    transition: .6s;
+    z-index: -1;
+    top: -100px;
+    left: 55px;
 }
 
 .selected{
