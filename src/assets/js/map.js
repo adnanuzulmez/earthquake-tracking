@@ -77,6 +77,7 @@ const mapMixin = {
                     this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
                     this.dateDay.push(
                         {
+                            fullDate: moment(item.date_time).format('YYYY-MM-DD'),
                             date: moment(item.date_time).format('dddd'),
                             time: moment(item.date_time).format('HH:mm'),
                             title: item.title
