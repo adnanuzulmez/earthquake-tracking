@@ -76,7 +76,7 @@
           @click="getWeatherData(index),() => {
             selectAndScroll(index)
             center = [item.position.lat, item.position.lng]}">
-          <l-popup style="min-width: 150px" >
+          <l-popup style="min-width: 150px">
             <div class="magnitude">
               <h2 style="font-size: 40px;color: #446c8f;;">{{ item.popup.mag }}</h2>
               <h4>Magnitude</h4>
