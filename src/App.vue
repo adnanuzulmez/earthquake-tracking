@@ -72,11 +72,11 @@
         <l-tile-layer :url="this.mapCreator" :attribution="attribution" />
         <Vue2LeafletHeatmap :lat-lng="getHeatMapDatas" :radius="40" :min-opacity="0.35" :max-zoom="10" :blur="50">
         </Vue2LeafletHeatmap>
-        <l-marker v-for="(item, index) in position" :key="index" :lat-lng="item.position"
-          @click="getWeatherData(index),() => {
+        <l-marker v-for="(item, index) in position" :key="index" :lat-lng="item.position" @click="getWeatherData(index), () => {
             selectAndScroll(index)
-            center = [item.position.lat, item.position.lng]}">
-          <l-popup >
+            center = [item.position.lat, item.position.lng]
+          }">
+          <l-popup>
             <div class="magnitude">
               <h2 style="font-size: 40px;color: #446c8f;;">{{ item.popup.mag }}</h2>
               <h4>Magnitude</h4>
@@ -94,13 +94,16 @@
           </l-tooltip>
         </l-marker>
         <l-icon-default :image-path="path" />
+        
+          <l-polyline  :lat-lngs="staticFaultLine" :visible="true" :options="{color: 'red', weight: 6, opacity: 0.4}" />
+       
       </l-map>
     </div>
   </div>
 </template>
 
 <script>
-import { LMap, LTileLayer, LMarker, LIconDefault, LPopup, LIcon, LTooltip } from "vue2-leaflet";
+import { LMap, LTileLayer, LMarker, LIconDefault, LPopup, LIcon, LTooltip, LPolyline, } from "vue2-leaflet";
 import mapMixin from "./assets/js/map.js"
 import Vue2LeafletHeatmap from "./Vue2LeafletHeatMap";
 import Multiselect from 'vue-multiselect'
@@ -109,7 +112,7 @@ import DatePicker from 'vue2-datepicker';
 import 'vue2-datepicker/index.css';
 import apitools from "./assets/js/api"
 import axios from 'axios'
-
+import faultLine from './assets/static-data/fault-lines'
 let cityId
 export default {
   name: "EarthquakeMap",
@@ -124,12 +127,13 @@ export default {
     LIcon,
     LTooltip,
     Multiselect,
-    DatePicker
+    DatePicker,
+    LPolyline,
   },
   data() {
     return {
       zoom: 4,
-      minZoom: 4,
+      minZoom: 3,
       maxZoom: 15,
       path: "/images/",
       center: [38.837033, 35.057786],
@@ -143,11 +147,15 @@ export default {
       filterFlag: 1,
       dateFlag: 1,
       dateRange: [],
-      selectedMarker: ''
-
+      selectedMarker: '',
+      faultLines: [],
+      staticFaultLine:[],
+      staticFaultLine2:[],
     };
   },
   mounted() {
+    this.faultLines = faultLine
+    this.faultLineCreator()
     this.getMap()
     console.log(this.getEAdatas);
     this.getEAdatas = this.getEarthquakeDatas()
@@ -160,6 +168,7 @@ export default {
     }, 200);
     let leafletZoom = document.querySelector(".leaflet-left")
     leafletZoom.remove()
+    
   },
   watch: {
     citySearch() {
@@ -216,6 +225,20 @@ export default {
 
   },
   methods: {
+    faultLineCreator() {
+     
+      this.faultLines.features.map((item, index) => {
+        this.staticFaultLine2[index] = item.geometry.coordinates
+      })
+      this.staticFaultLine2.map((item, index) => {
+        let tempFault = []
+        item.map((items) => {
+          tempFault.push(items.reverse())
+        })
+        this.staticFaultLine[index] = tempFault
+      })
+      
+    },
     sidebarHide() {
       if (this.sidebarFlag != 0) {
         this.sidebarFlag = 0
@@ -353,18 +376,18 @@ export default {
         this.selectedMarker = index
       }, 1000);
     },
-    getWeatherData(index){
+    getWeatherData(index) {
       let dateTime = this.dateDay[index].fullDate
       let params = {
-       params: {
-        q: this.dateDay[index].title,
-        dt: dateTime
-       }
+        params: {
+          q: this.dateDay[index].title,
+          dt: dateTime
+        }
       }
       axios.get(apitools.WEATHER_API, params)
-      .then((response) => {
-        console.log(response.data);
-      })
+        .then((response) => {
+          console.log(response.data);
+        })
     }
   }
 
@@ -649,10 +672,10 @@ body {
   z-index: -1;
 }
 
-.selected{
+.selected {
   background-color: #ffffff80 !important;
-    color: #000000 !important;
-    box-shadow: rgb(221 221 221 / 39%) 0px 0px 20px !important;
+  color: #000000 !important;
+  box-shadow: rgb(221 221 221 / 39%) 0px 0px 20px !important;
 }
 
 .multiselect__option--selected.multiselect__option--highlight {
