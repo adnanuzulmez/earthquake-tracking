@@ -72,10 +72,7 @@
         <l-tile-layer :url="this.mapCreator" :attribution="attribution" />
         <Vue2LeafletHeatmap :lat-lng="getHeatMapDatas" :radius="40" :min-opacity="0.35" :max-zoom="10" :blur="50">
         </Vue2LeafletHeatmap>
-        <l-marker v-for="(item, index) in position" :key="index" :lat-lng="item.position" @click="getWeatherData(index), () => {
-            selectAndScroll(index)
-
-            center = [item.position.lat, item.position.lng]}">
+        <l-marker v-for="(item, index) in position" :key="index" :lat-lng="item.position" @click="getWeatherData(index),selectAndScroll(index)">
           <l-popup style="min-width: 150px">
 
             <div class="magnitude">
@@ -395,6 +392,7 @@ export default {
       setTimeout(() => {
         this.selectedMarker = index
       }, 1000);
+      this.center = [this.position[index].position.lat, this.position[index].position.lng]
     },
     getWeatherData(index) {
       let dateTime = this.dateDay[index].fullDate
@@ -410,11 +408,6 @@ export default {
         this.forecastInfo = response.data.forecast.forecastday[0].day
         console.log(this.forecastInfo);
       })
-
-        .then((response) => {
-          console.log(response.data);
-        })
-
     }
   }
 
