@@ -392,7 +392,7 @@ export default {
       setTimeout(() => {
         this.selectedMarker = index
       }, 1000);
-      this.center = [this.position[index].position.lat, this.position[index].position.lng]
+      
     },
     getWeatherData(index) {
       let dateTime = this.dateDay[index].fullDate
