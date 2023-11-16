@@ -72,7 +72,8 @@
         <l-tile-layer :url="this.mapCreator" :attribution="attribution" />
         <Vue2LeafletHeatmap :lat-lng="getHeatMapDatas" :radius="40" :min-opacity="0.35" :max-zoom="10" :blur="50">
         </Vue2LeafletHeatmap>
-        <l-marker v-for="(item, index) in position" :key="index" :lat-lng="item.position" @click="getWeatherData(index),selectAndScroll(index)">
+        <l-marker v-for="(item, index) in position" :key="index" :lat-lng="item.position"
+          @click="getWeatherData(index), selectAndScroll(index)">
           <l-popup style="min-width: 150px">
 
             <div class="magnitude">
@@ -80,18 +81,18 @@
               <h4>Magnitude</h4>
             </div>
             <div class="infos">
-              
+
               <h5>{{ dateDay[index].date }} {{ dateDay[index].time }}</h5>
               <h5>Depth: {{ item.popup.depth }} KM</h5>
               <h5>{{ dateDay[index].title }} </h5>
               <h5 style="display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex;  justify-content: center; flex-direction: column;">
                   <h3>{{ forecastInfo.condition.text }}</h3>
-                <h3>{{ forecastInfo.mintemp_c }}°  -  {{ forecastInfo.maxtemp_c }}°</h3>
+                  <h3>{{ forecastInfo.mintemp_c }}° - {{ forecastInfo.maxtemp_c }}°</h3>
                 </div>
-              <img :src="forecastInfo.condition.icon" style="width: 50px; height: 50px">
+                <img :src="forecastInfo.condition.icon" style="width: 50px; height: 50px">
               </h5>
-             
+
             </div>
           </l-popup>
           <l-icon>
@@ -101,9 +102,9 @@
           </l-tooltip>
         </l-marker>
         <l-icon-default :image-path="path" />
-        
-          <l-polyline  :lat-lngs="staticFaultLine" :visible="true" :options="{color: 'red', weight: 6, opacity: 0.4}" />
-       
+
+        <l-polyline :lat-lngs="staticFaultLine" :visible="true" :options="{ color: 'red', weight: 6, opacity: 0.4 }" />
+
       </l-map>
     </div>
   </div>
@@ -164,8 +165,9 @@ export default {
         maxtemp_c: ''
       },
       faultLines: [],
-      staticFaultLine:[],
-      staticFaultLine2:[],
+      staticFaultLine: [],
+      staticFaultLine2: [],
+      searchDebounce: ''
     };
   },
   mounted() {
@@ -183,7 +185,7 @@ export default {
     }, 200);
     let leafletZoom = document.querySelector(".leaflet-left")
     leafletZoom.remove()
-    
+
   },
   watch: {
     citySearch() {
@@ -241,7 +243,7 @@ export default {
   },
   methods: {
     faultLineCreator() {
-     
+
       this.faultLines.features.map((item, index) => {
         this.staticFaultLine2[index] = item.geometry.coordinates
       })
@@ -252,7 +254,7 @@ export default {
         })
         this.staticFaultLine[index] = tempFault
       })
-      
+
     },
     sidebarHide() {
       if (this.sidebarFlag != 0) {
@@ -305,44 +307,50 @@ export default {
     },
     filterCity() {
 
-      this.getDetailData.map((item, index) => {
-        this.searchArray[index] = this.getDetailData[index]
-        this.searchArray[index] = this.searchArray[index].filter(item => item.title.toLowerCase().includes(this.citySearch.toLowerCase()))
-      })
-      let tempLoc = []
-      this.position = []
-      this.getHeatMapDatas = []
-      this.dateDay = []
-      this.searchArray.map((item, index) => {
-        tempLoc[index] = item.filter(item => item.title.toLowerCase().includes(this.citySearch.toLowerCase()))
-      })
+      if (this.searchDebounce) {
+        clearTimeout(this.searchDebounce);
+      }
 
-      tempLoc.map((items) => {
-        items.map((item) => {
-          this.position.push(
-            {
-              position: {
-                lat: item.geojson.coordinates[1],
-                lng: item.geojson.coordinates[0]
-              },
-              popup: {
-                mag: item.mag,
-                depth: item.depth,
-              },
-              tooltip: item.title,
-              id: item._id
-            })
-          this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
-          this.dateDay.push(
-            {
-              fullDate: moment(item.date_time).format('YYYY-MM-DD'),
-              date: moment(item.date_time).format('dddd'),
-              time: moment(item.date_time).format('HH:mm'),
-              title: item.title
-            })
+      this.searchDebounce = setTimeout(() => {
+        this.getDetailData.map((item, index) => {
+          this.searchArray[index] = this.getDetailData[index]
+          this.searchArray[index] = this.searchArray[index].filter(item => item.title.toLowerCase().includes(this.citySearch.toLowerCase()))
+        })
+        let tempLoc = []
+        this.position = []
+        this.getHeatMapDatas = []
+        this.dateDay = []
+        this.searchArray.map((item, index) => {
+          tempLoc[index] = item.filter(item => item.title.toLowerCase().includes(this.citySearch.toLowerCase()))
         })
 
-      })
+        tempLoc.map((items) => {
+          items.map((item) => {
+            this.position.push(
+              {
+                position: {
+                  lat: item.geojson.coordinates[1],
+                  lng: item.geojson.coordinates[0]
+                },
+                popup: {
+                  mag: item.mag,
+                  depth: item.depth,
+                },
+                tooltip: item.title,
+                id: item._id
+              })
+            this.getHeatMapDatas.push({ lat: item.geojson.coordinates[1], lng: item.geojson.coordinates[0] })
+            this.dateDay.push(
+              {
+                fullDate: moment(item.date_time).format('YYYY-MM-DD'),
+                date: moment(item.date_time).format('dddd'),
+                time: moment(item.date_time).format('HH:mm'),
+                title: item.title
+              })
+          })
+
+        })
+      }, 500);
     },
     filterShow() {
       if (this.filterFlag != 0) {
@@ -392,7 +400,7 @@ export default {
       setTimeout(() => {
         this.selectedMarker = index
       }, 1000);
-      
+
     },
     getWeatherData(index) {
       let dateTime = this.dateDay[index].fullDate
@@ -403,11 +411,11 @@ export default {
         }
       }
       axios.get(apitools.WEATHER_API, params)
-       .then((response) => {
-        
-        this.forecastInfo = response.data.forecast.forecastday[0].day
-        console.log(this.forecastInfo);
-      })
+        .then((response) => {
+
+          this.forecastInfo = response.data.forecast.forecastday[0].day
+          console.log(this.forecastInfo);
+        })
     }
   }
 
@@ -679,19 +687,19 @@ body {
 }
 
 .hideContent-show {
-    left: 55px !important;
-    top: 7px !important;
-    opacity: 1 !important;
-    transition: .6s;
+  left: 55px !important;
+  top: 7px !important;
+  opacity: 1 !important;
+  transition: .6s;
 }
 
 .hideContent {
   position: absolute;
-    opacity: 0;
-    transition: .6s;
-    z-index: -1;
-    top: -100px;
-    left: 55px;
+  opacity: 0;
+  transition: .6s;
+  z-index: -1;
+  top: -100px;
+  left: 55px;
 }
 
 .selected {
