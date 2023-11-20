@@ -94,8 +94,8 @@
               </h5>
               <div class="social-media">
                 <div class="social-media-icon">
-                  <svg @click="shareSocialMedia(index, item)" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                    class="bi bi-whatsapp" viewBox="0 0 16 16">
+                  <svg @click="shareSocialMedia(index, item)" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                    fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
                     <path
                       d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z" />
                   </svg>
@@ -207,7 +207,13 @@ export default {
 
     let leafletZoom = document.querySelector(".leaflet-left")
     leafletZoom.remove()
-    this.initMap()
+    if (window.location.href.includes("show=")) {
+      this.checkUrlCoordinates()
+      setTimeout(() => {
+        this.setCenterByLocation(window.location.href.split("show=")[1])
+        this.initMap()
+      }, 1000);
+    }
   },
   watch: {
     citySearch() {
@@ -284,8 +290,8 @@ export default {
       }
     },
     shareSocialMedia(index, item) {
-     
-      const metin = `----------Earthquake Analyze----------%0ADate: ${ this.dateDay[index].date} | ${this.dateDay[index].time }%0ALocation: ${this.dateDay[index].title}%0ADepth: ${item.popup.depth}%0AMagnitude: ${item.popup.mag}%0ALink: ${window.location.href.split('//')[1].split('/')[0]}/${this.getHeatMapDatas[index].lat}/${this.getHeatMapDatas[index].lng}/14`;
+
+      const metin = `----------Earthquake Analyze----------%0ADate: ${this.dateDay[index].date} | ${this.dateDay[index].time}%0ALocation: ${this.dateDay[index].title}%0ADepth: ${item.popup.depth}%0AMagnitude: ${item.popup.mag}%0ALink: ${window.location.href.split('//')[1].split('/')[0]}/${this.getHeatMapDatas[index].lat}/${this.getHeatMapDatas[index].lng}/14?show=${this.searchArray[0][index]._id}`;
 
       // WhatsApp paylaşım bağlantısı oluştur
       const whatsappLink = `https://wa.me/?text=${metin}`;
@@ -423,21 +429,32 @@ export default {
     setCenterByLocation(id) {
       cityId = this.getDetailData[0].filter((item) => item._id === id)
       console.log(cityId[0]);
-      setTimeout(async () => {
-        this.getHeatMapDatas = []
-        await this.$refs.map.mapObject.flyTo(cityId[0].geojson.coordinates.reverse(), 13, { duration: 3.2 })
-      }, 10);
-      setTimeout(() => {
-        this.createHeatMapDatas()
-      }, 20);
-      setTimeout(() => {
+      if (window.location.href.includes("show=")) {
         this.x = document.querySelectorAll(`.leaflet-marker-icon`)
         Array.from(this.x).map((item) => {
           if (item.childNodes[0].getAttribute("id") === cityId[0]._id) {
             item.childNodes[0].click()
           }
         })
-      }, 3300);
+      }
+      else {
+        setTimeout(async () => {
+          this.getHeatMapDatas = []
+          await this.$refs.map.mapObject.flyTo(cityId[0].geojson.coordinates.reverse(), 13, { duration: 3.2 })
+        }, 10);
+        setTimeout(() => {
+          this.createHeatMapDatas()
+        }, 20);
+        setTimeout(() => {
+          this.x = document.querySelectorAll(`.leaflet-marker-icon`)
+          Array.from(this.x).map((item) => {
+            if (item.childNodes[0].getAttribute("id") === cityId[0]._id) {
+              item.childNodes[0].click()
+            }
+          })
+        }, 3300);
+      }
+
     },
     selectAndScroll(index) {
       const contentBox = this.$refs.contentBox;
@@ -829,29 +846,29 @@ body {
   width: 220px !important;
 }
 
-.social-media{
+.social-media {
   display: flex;
   justify-content: space-evenly;
   margin: 12px 0;
 }
 
-.social-media-icon{
+.social-media-icon {
   width: 100%;
   justify-content: center;
   align-items: center;
   display: flex;
-  
+
 }
 
-.social-media-icon svg:hover{
+.social-media-icon svg:hover {
   filter: drop-shadow(0px 0px 4px #6b6b6b);
 }
 
-.social-media-icon:not(:last-child){
+.social-media-icon:not(:last-child) {
   border-right: 1px solid #c5c5c5;
 }
 
-.social-media-icon svg{
+.social-media-icon svg {
   color: #6b6b6b;
   transition: .2s;
   cursor: pointer;
@@ -872,4 +889,5 @@ body {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
   }
-}</style>
+}
+</style>
