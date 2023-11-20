@@ -207,7 +207,7 @@ export default {
 
     let leafletZoom = document.querySelector(".leaflet-left")
     leafletZoom.remove()
-    
+    this.initMap()
   },
   watch: {
     citySearch() {
