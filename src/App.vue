@@ -285,7 +285,7 @@ export default {
     },
     shareSocialMedia(index, item) {
      
-      const metin = `----------Earthquake Analyze----------%0ADate: ${ this.dateDay[index].date} | ${this.dateDay[index].time }%0ALocation: ${this.dateDay[index].title}%0ADepth: ${item.popup.depth}%0AMagnitude: ${item.popup.mag}%0ALink: ${window.location.href}${this.getHeatMapDatas[index].lat}/${this.getHeatMapDatas[index].lng}`;
+      const metin = `----------Earthquake Analyze----------%0ADate: ${ this.dateDay[index].date} | ${this.dateDay[index].time }%0ALocation: ${this.dateDay[index].title}%0ADepth: ${item.popup.depth}%0AMagnitude: ${item.popup.mag}%0ALink: ${window.location.href.split('//')[1].split('/')[0]}/${this.getHeatMapDatas[index].lat}/${this.getHeatMapDatas[index].lng}/14`;
 
       // WhatsApp paylaşım bağlantısı oluştur
       const whatsappLink = `https://wa.me/?text=${metin}`;
